@@ -99,10 +99,6 @@ MavESP8266GCS::_readMessage()
                 if(msgReceived) {
                     //-- We no longer need to broadcast
                     _status.packets_received++;
-                    if(_ip[3] == 255) {
-                        _ip = _udp.remoteIP();
-                        getWorld()->getLogger()->log("Response from GCS. Setting GCS IP to: %s\n", _ip.toString().c_str());
-                    }
                     //-- First packets
                     if(!_heard_from) {
                         if(_message.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
@@ -110,6 +106,12 @@ MavESP8266GCS::_readMessage()
                             if(getWorld()->getParameters()->getWifiMode() == WIFI_MODE_AP) {
                                 wifi_softap_dhcps_stop();
                             }
+
+                            if(_ip[3] == 255) {
+                                _ip = _udp.remoteIP();
+                                getWorld()->getLogger()->log("Response from GCS. Setting GCS IP to: %s\n", _ip.toString().c_str());
+                            }
+
                             _heard_from      = true;
                             _system_id       = _message.sysid;
                             _component_id    = _message.compid;
@@ -234,21 +236,9 @@ MavESP8266GCS::_sendRadioStatus()
 {
     linkStatus* st = _forwardTo->getStatus();
     uint8_t rssi = 0;
-    uint8_t lostVehicleMessages = 100;
-    uint8_t lostGcsMessages = 100;
-
     if(wifi_get_opmode() == STATION_MODE) {
         rssi = (uint8_t)wifi_station_get_rssi();
     }
-
-    if (st->packets_received > 0) {
-        lostVehicleMessages = (st->packets_lost * 100) / st->packets_received;
-    }
-
-    if (_status.packets_received > 0) {
-        lostGcsMessages = (_status.packets_lost * 100) / _status.packets_received;
-    }
-
     //-- Build message
     mavlink_message_t msg;
     mavlink_msg_radio_status_pack(
@@ -259,11 +249,10 @@ MavESP8266GCS::_sendRadioStatus()
         0,                      // We don't have access to Remote RSSI
         st->queue_status,       // UDP queue status
         0,                      // We don't have access to noise data
-        lostVehicleMessages,    // Percent of lost messages from Vehicle (UART)
-        lostGcsMessages,        // Percent of lost messages from GCS (UDP)
+        st->packets_received != 0 ? (uint16_t)((st->packets_lost * 100) / st->packets_received) : 100,                // Percent of lost messages from Vehicle (UART)
+        _status.packets_received != 0 ? (uint16_t)((_status.packets_lost * 100) / _status.packets_received) : 100,        // Percent of lost messages from GCS (UDP)
         0                       // We don't fix anything
     );
-
     _sendSingleUdpMessage(&msg);
     _status.radio_status_sent++;
 }
@@ -276,6 +265,7 @@ MavESP8266GCS::_sendSingleUdpMessage(mavlink_message_t* msg)
     // Translate message to buffer
     char buf[300];
     unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, msg);
+
     // Send it
     _udp.beginPacket(_ip, _udp_port);
     size_t sent = _udp.write((uint8_t*)(void*)buf, len);
@@ -290,3 +280,4 @@ MavESP8266GCS::_sendSingleUdpMessage(mavlink_message_t* msg)
     }
     _status.packets_sent++;
 }
+
