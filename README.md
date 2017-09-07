@@ -1,12 +1,8 @@
 # MavESP8266
 
-## Current Binary
-
-Download the current version from here: [Firmware version 1.1.1](http://www.grubba.com/mavesp8266/firmware-1.1.1.bin)
+Has been tested on ESP07 module. Boadrate 57600
 
 ## ESP8266 WiFi Access Point and MavLink Bridge
-
-[![Join the chat at https://gitter.im/dogmaphobic/mavesp8266](https://badges.gitter.im/dogmaphobic/mavesp8266.svg)](https://gitter.im/dogmaphobic/mavesp8266?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This was developed using a [NodeMCU v2 Dev Kit](http://www.seeedstudio.com/depot/NodeMCU-v2-Lua-based-ESP8266-development-kit-p-2415.html) as it conveniently provides a secondary UART for debugging. It has been tested with the ESP-01 shipped with the [PixRacer](https://pixhawk.org/modules/pixracer) and it is stable at 921600 baud.
 
@@ -25,8 +21,8 @@ When you run ```platformio run``` for the first time, it will download the toolc
 ### Useful commands:
 
 * ```platformio run``` - process/build all targets
-* ```platformio run -e esp12e``` - process/build just the ESP12e target (the NodeMcu v2)
-* ```platformio run -e esp12e -t upload``` - build and upload firmware to embedded board
+* ```platformio run -e esp07``` - process/build just the ESP07 target (the NodeMcu v2)
+* ```platformio run -e esp07 -t upload``` - build and upload firmware to embedded board
 * ```platformio run -t clean``` - clean project (remove compiled files)
 
 The resulting image(s) can be found in the directory ```.pioenvs``` created during the build process.
