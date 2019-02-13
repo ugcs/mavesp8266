@@ -50,10 +50,11 @@ MavESP8266GCS::MavESP8266GCS()
 //---------------------------------------------------------------------------------
 //-- Initialize
 void
-MavESP8266GCS::begin(MavESP8266Bridge* forwardTo, IPAddress gcsIP)
+MavESP8266GCS::begin(MavESP8266Bridge* forwardTo, IPAddress broadcastIP)
 {
     MavESP8266Bridge::begin(forwardTo);
-    _ip = gcsIP;
+    _bcast_ip = broadcastIP;
+    _ip = broadcastIP;
     //-- Init variables that shouldn't change unless we reboot
     _udp_port = getWorld()->getParameters()->getWifiUdpHport();
     //-- Start UDP
@@ -107,7 +108,7 @@ MavESP8266GCS::_readMessage()
                                 wifi_softap_dhcps_stop();
                             }
 
-                            if(_ip[3] == 255) {
+                            if(_ip == _bcast_ip) {
                                 _ip = _udp.remoteIP();
                                 getWorld()->getLogger()->log("Response from GCS. Setting GCS IP to: %s\n", _ip.toString().c_str());
                             }
@@ -148,7 +149,7 @@ MavESP8266GCS::_readMessage()
                 wifi_softap_dhcps_start();
             }
             _heard_from = false;
-            _ip[3] = 255;
+            _ip = _bcast_ip;
             getWorld()->getLogger()->log("Heartbeat timeout from GCS\n");
         }
     }

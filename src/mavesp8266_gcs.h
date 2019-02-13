@@ -61,6 +61,7 @@ private:
 private:
     WiFiUDP             _udp;
     IPAddress           _ip;
+    IPAddress           _bcast_ip;
     uint16_t            _udp_port;
     mavlink_message_t   _message;
     unsigned long       _last_status_time;
